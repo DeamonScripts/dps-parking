@@ -50,23 +50,11 @@ Impound.Config = {
 ---@return boolean success
 ---@return string message
 function Impound.ImpoundVehicle(source, plate, reason, notes)
-    local playerJob = Bridge.GetPlayerJob(source)
-    local isAuthorized = false
+    -- Use Permissions bridge for authorization
+    local canImpound, permReason = Permissions.CanImpound(source, reason)
 
-    for _, job in ipairs(Impound.Config.authorizedJobs) do
-        if playerJob == job then
-            isAuthorized = true
-            break
-        end
-    end
-
-    if not isAuthorized then
-        return false, 'You are not authorized to impound vehicles'
-    end
-
-    -- Check duty status
-    if Impound.Config.requireOnDuty and not Bridge.IsOnDuty(source) then
-        return false, 'You must be on duty to impound vehicles'
+    if not canImpound then
+        return false, permReason
     end
 
     -- Get tier

@@ -82,6 +82,9 @@ server_scripts {
     -- Integrations (load before modules that use them)
     'integrations/garages.lua',
     'integrations/insurance.lua',
+    'integrations/permissions.lua',
+    'integrations/dispatch.lua',
+    'integrations/billing.lua',
 
     -- Modules
     'modules/zones/server.lua',

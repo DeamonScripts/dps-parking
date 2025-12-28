@@ -53,6 +53,14 @@ Violations.Config = {
 ---@return boolean success
 ---@return string message
 function Violations.IssueTicket(source, plate, violationType, location, notes)
+    -- Check permission if issued by officer (not automated)
+    if source then
+        local canTicket, permReason = Permissions.Check(source, 'issueTicket')
+        if not canTicket then
+            return false, permReason
+        end
+    end
+
     local ticketType = Violations.Config.types[violationType]
     if not ticketType then
         return false, 'Invalid violation type'
@@ -95,6 +103,17 @@ function Violations.IssueTicket(source, plate, violationType, location, notes)
         DB.AuditLog('ticket_issued', citizenid, plate, ticket)
     end
 
+    -- Create invoice through billing system
+    if citizenid and Billing and Billing.IsAvailable() then
+        Billing.CreateTicketInvoice(
+            citizenid,
+            ticketType.fine,
+            ticketType.label,
+            plate,
+            ticketId
+        )
+    end
+
     -- Notify owner if online
     if citizenid then
         local player = Bridge.GetPlayerByCitizenId(citizenid)
@@ -105,6 +124,16 @@ function Violations.IssueTicket(source, plate, violationType, location, notes)
                 TriggerClientEvent('dps-parking:client:receivedTicket', playerSource, ticket)
             end
         end
+    end
+
+    -- Send dispatch alert
+    if Dispatch and Dispatch.IsAvailable() and location then
+        Dispatch.SendParkingAlert({
+            type = violationType,
+            plate = plate,
+            location = location,
+            description = ('Ticket issued: %s - %s'):format(ticketType.label, plate),
+        })
     end
 
     -- Publish event
