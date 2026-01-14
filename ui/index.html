@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPS Parking</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Main Parking Dashboard -->
+    <div id="parking-app" class="hidden">
+        <div class="dashboard">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <div class="header-left">
+                    <div class="logo">
+                        <i class="fas fa-parking"></i>
+                        <span>DPS Parking</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="stat-badge" id="vip-badge">
+                        <i class="fas fa-crown"></i>
+                        <span id="vip-tier">Standard</span>
+                    </div>
+                    <div class="stat-badge">
+                        <i class="fas fa-car"></i>
+                        <span id="slot-count">0/5</span>
+                    </div>
+                    <button class="close-btn" onclick="ParkingUI.close()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="vehicles" onclick="ParkingUI.switchTab('vehicles')">
+                    <i class="fas fa-car-side"></i>
+                    <span>My Vehicles</span>
+                </button>
+                <button class="nav-tab" data-tab="deliveries" onclick="ParkingUI.switchTab('deliveries')">
+                    <i class="fas fa-truck"></i>
+                    <span>Deliveries</span>
+                    <span class="badge hidden" id="delivery-count">0</span>
+                </button>
+                <button class="nav-tab" data-tab="meters" onclick="ParkingUI.switchTab('meters')">
+                    <i class="fas fa-clock"></i>
+                    <span>Meters</span>
+                </button>
+                <button class="nav-tab" data-tab="tickets" onclick="ParkingUI.switchTab('tickets')">
+                    <i class="fas fa-ticket"></i>
+                    <span>Tickets</span>
+                    <span class="badge hidden" id="ticket-count">0</span>
+                </button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="dashboard-content">
+                <!-- Vehicles Tab -->
+                <div class="tab-content active" id="tab-vehicles">
+                    <div class="content-header">
+                        <h2>Parked Vehicles</h2>
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search by plate..." id="vehicle-search" oninput="ParkingUI.filterVehicles()">
+                        </div>
+                    </div>
+                    <div class="vehicle-grid" id="vehicle-list">
+                        <!-- Vehicles populated here -->
+                    </div>
+                    <div class="empty-state hidden" id="empty-vehicles">
+                        <i class="fas fa-car-side"></i>
+                        <h3>No Parked Vehicles</h3>
+                        <p>Park a vehicle using /park or press F5 near your car</p>
+                    </div>
+                </div>
+
+                <!-- Deliveries Tab -->
+                <div class="tab-content" id="tab-deliveries">
+                    <div class="content-header">
+                        <h2>Active Deliveries</h2>
+                    </div>
+                    <div class="delivery-list" id="delivery-list">
+                        <!-- Deliveries populated here -->
+                    </div>
+                    <div class="empty-state hidden" id="empty-deliveries">
+                        <i class="fas fa-truck"></i>
+                        <h3>No Active Deliveries</h3>
+                        <p>Request a delivery from your parked vehicles</p>
+                    </div>
+                </div>
+
+                <!-- Meters Tab -->
+                <div class="tab-content" id="tab-meters">
+                    <div class="content-header">
+                        <h2>Parking Meters</h2>
+                    </div>
+                    <div class="meter-list" id="meter-list">
+                        <!-- Active meters populated here -->
+                    </div>
+                    <div class="empty-state hidden" id="empty-meters">
+                        <i class="fas fa-clock"></i>
+                        <h3>No Active Meters</h3>
+                        <p>Pay a meter near your parked vehicle</p>
+                    </div>
+                </div>
+
+                <!-- Tickets Tab -->
+                <div class="tab-content" id="tab-tickets">
+                    <div class="content-header">
+                        <h2>Parking Tickets</h2>
+                        <button class="btn btn-primary" onclick="ParkingUI.payAllTickets()">
+                            <i class="fas fa-credit-card"></i>
+                            Pay All
+                        </button>
+                    </div>
+                    <div class="ticket-list" id="ticket-list">
+                        <!-- Tickets populated here -->
+                    </div>
+                    <div class="empty-state hidden" id="empty-tickets">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>No Outstanding Tickets</h3>
+                        <p>You're all clear!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Detail Modal -->
+    <div id="vehicle-modal" class="modal hidden">
+        <div class="modal-backdrop" onclick="ParkingUI.closeModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-plate">ABC 123</h2>
+                <button class="close-btn" onclick="ParkingUI.closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="vehicle-preview">
+                    <div class="vehicle-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div class="vehicle-info">
+                        <div class="info-row">
+                            <span class="label">Model</span>
+                            <span class="value" id="modal-model">Sultan RS</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Location</span>
+                            <span class="value" id="modal-location">Legion Square</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Parked</span>
+                            <span class="value" id="modal-time">2 hours ago</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="vehicle-stats">
+                    <div class="stat-item">
+                        <div class="stat-icon fuel">
+                            <i class="fas fa-gas-pump"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Fuel</span>
+                            <div class="stat-bar">
+                                <div class="stat-fill" id="modal-fuel" style="width: 75%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon body">
+                            <i class="fas fa-car-crash"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Body</span>
+                            <div class="stat-bar">
+                                <div class="stat-fill" id="modal-body" style="width: 90%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon engine">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Engine</span>
+                            <div class="stat-bar">
+                                <div class="stat-fill" id="modal-engine" style="width: 85%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="ParkingUI.requestDelivery()">
+                    <i class="fas fa-truck"></i>
+                    Request Delivery
+                </button>
+                <button class="btn btn-secondary" onclick="ParkingUI.viewOnMap()">
+                    <i class="fas fa-map-marker-alt"></i>
+                    View on Map
+                </button>
+                <button class="btn btn-ghost" onclick="ParkingUI.closeModal()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Request Modal -->
+    <div id="delivery-modal" class="modal hidden">
+        <div class="modal-backdrop" onclick="ParkingUI.closeDeliveryModal()"></div>
+        <div class="modal-content delivery-modal">
+            <div class="modal-header">
+                <h2>Request Delivery</h2>
+                <button class="close-btn" onclick="ParkingUI.closeDeliveryModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="delivery-options">
+                    <div class="delivery-option" data-type="standard" onclick="ParkingUI.selectDeliveryType('standard')">
+                        <div class="option-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="option-info">
+                            <h3>Standard Delivery</h3>
+                            <p>5-10 minutes</p>
+                        </div>
+                        <div class="option-price" id="standard-price">$500</div>
+                    </div>
+                    <div class="delivery-option" data-type="rush" onclick="ParkingUI.selectDeliveryType('rush')">
+                        <div class="option-icon rush">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="option-info">
+                            <h3>Rush Delivery</h3>
+                            <p>2-3 minutes</p>
+                        </div>
+                        <div class="option-price" id="rush-price">$1,000</div>
+                    </div>
+                </div>
+                <div class="delivery-extras">
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="npc-driver">
+                        <span class="checkmark"></span>
+                        <div class="option-text">
+                            <span>NPC Valet Driver</span>
+                            <small>Driver delivers your car (VIP Silver+)</small>
+                        </div>
+                    </label>
+                </div>
+                <div class="delivery-summary">
+                    <div class="summary-row">
+                        <span>Delivery Fee</span>
+                        <span id="delivery-fee">$500</span>
+                    </div>
+                    <div class="summary-row" id="discount-row" style="display: none;">
+                        <span>VIP Discount</span>
+                        <span id="discount-amount">-$125</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="delivery-total">$500</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="ParkingUI.confirmDelivery()">
+                    <i class="fas fa-check"></i>
+                    Confirm Delivery
+                </button>
+                <button class="btn btn-ghost" onclick="ParkingUI.closeDeliveryModal()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

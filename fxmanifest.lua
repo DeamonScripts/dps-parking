@@ -24,7 +24,7 @@ lua54 'yes'
 name 'dps-parking'
 author 'DPS Development (Original: MaDHouSe79)'
 description 'Advanced Parking System with Valet, Impound, Violations, Reserved Spots & More'
-version '2.0.0'
+version '2.1.0'
 
 -- Dependencies
 dependencies {
@@ -107,12 +107,13 @@ server_scripts {
 }
 
 -- UI files
-ui_page 'ui/garage/index.html'
+ui_page 'ui/index.html'
 
 files {
-    'ui/garage/index.html',
-    'ui/garage/style.css',
-    'ui/garage/app.js',
+    'ui/index.html',
+    'ui/styles/main.css',
+    'ui/js/utils.js',
+    'ui/js/app.js',
     'ui/meters/index.html',
     'ui/phone/index.html',
 }
